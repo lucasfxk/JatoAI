@@ -44,5 +44,27 @@ erro_angular(Angulo, Xd,Yd, ErroNorm):-
     
     arredonda(Erro / (2* pi), Arr),
     ErroNorm is Erro - (2 * pi) * Arr.
+
+
+
+direcao(ErroAng, Esq, Dir, Par):-
+    ErroAng >= 0,
+    DeadAngle is pi / 6, %Intervalo para seguir Reto
+    ErroAng > DeadAngle,
+    Esq is 1,
+    Dir is 0,
+    Par is 0.
     
+direcao(ErroAng, Esq, Dir, Par):-
+    ErroAng < 0,
+    DeadAngle is -pi / 6, %Intervalo para seguir Reto
+    ErroAng < DeadAngle,
+    Esq is 0,
+    Dir is 1,
+    Par is 0.
+
+direcao(ErroAng, Esq, Dir, Par):-
+    Esq is 0,
+    Dir is 0,
+    Par is 1.
     
