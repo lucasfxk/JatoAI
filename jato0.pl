@@ -147,21 +147,42 @@ direcao(ErroAng, Esq, Dir):-
 troca(0, 1).
 troca(1, 0).
 
-% [FORWARD, REVERSE, LEFT, RIGHT, BOOM, MSG]
-obter_controles(INFORMACAO, ADVERSARIOS, MISSEIS, CONTROLES) :-
-    INFORMACAO = [X, Y, ANGLE, SCORE, SPEED],
+% atirar(Modo, Esquerda, Direita, Boom): só atira atacando e mirando reto
+atirar(atacar, 0, 0, 1).
+atirar(atacar, 1, _, 0).
+atirar(atacar, _, 1, 0).
+atirar(defender, _, _, 0).
+
+mensagem(atacar, "Atacando").
+mensagem(defender, "Defendendo").
+
+% Fugir: (Xi,Yi) já é o vetor até o inimigo, então basta inverter
+evadir(_, _, Xi, Yi, AcaoX, AcaoY) :-
+    AcaoX is -Xi,
+    AcaoY is -Yi.
+
+acao_jato(VidaAtual, VidaMaxima, X_Atual, Y_Atual, Adversarios, AcaoX, AcaoY, atacar) :-
+    Metade is VidaMaxima / 2,
+    VidaAtual > Metade,
+    coordenada_proxima(X_Atual, Y_Atual, Adversarios, AcaoX, AcaoY).
+acao_jato(VidaAtual, VidaMaxima, X_Atual, Y_Atual, Adversarios, AcaoX, AcaoY, defender) :-
+    Metade is VidaMaxima / 2,
+    VidaAtual =< Metade,
+    coordenada_proxima(X_Atual, Y_Atual, Adversarios, X_Inimigo, Y_Inimigo),
+    evadir(X_Atual, Y_Atual, X_Inimigo, Y_Inimigo, AcaoX, AcaoY).
+
+obter_controles(INFORMACAO, ADVERSARIOS, _MISSEIS, CONTROLES) :-
+    INFORMACAO = [X, Y, ANGLE, SCORE, _SPEED],
     CONTROLES = [FORWARD, REVERSE, LEFT, RIGHT, BOOM, MSG],
-    
-    coordenada_proxima(X, Y, ADVERSARIOS, Xf, Yf),
-    erro_angular(ANGLE, Xf, Yf, ErroAng),
-    direcao(ErroAng, LEFT,RIGHT),
+
+    acao_jato(SCORE, 100, X, Y, ADVERSARIOS, AX, AY, MODO),
+    erro_angular(ANGLE, AX, AY, ErroAng),
+    direcao(ErroAng, LEFT, RIGHT),
 
     FORWARD is 1,
     REVERSE is 0,
-    BOOM is 1,
-    MSG = "Versão 1.0", !.
-    %opcao:
-    %term_string([ADVERSARIOS| [MISSEIS]], MSG).
+    atirar(MODO, LEFT, RIGHT, BOOM),
+    mensagem(MODO, MSG), !.
 
 
 % Para evitar erros, o jato para:
